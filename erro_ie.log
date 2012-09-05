@@ -1,0 +1,206 @@
+Erro ao autenticar aplicações no JOSSO com o Internet Explorer
+
+Boa tarde.
+
+No Ambiente de Homologação (200.198.9.35), ocorre um erro ao autenticar as aplicações da UFLA no ambiente JOSSO com o IE.
+O erro acontece apenas no Internet Explorer -testamos nas versões 8 e 9- sendo que no Firefox e Chrome o funcionamento das aplicações é normal.
+O erro acontece também de forma aleatória, ou seja, após alguns recarregamentos de página, as aplicações autenticam e são carregadas normalmente.
+
+Favor verificarem a causa do erro, pois o mesmo impede o funcionamento das aplicações no Internet Explorer.
+
+
+
+
+========= APP
+
+16/08/2012 10:09:40 org.apache.catalina.realm.JAASRealm authenticate
+WARNING: Login exception authenticating username "A9A96B5184A3696358DB863AC67BB32B"
+javax.security.auth.login.LoginException: Login Failure: all modules ignored
+	at javax.security.auth.login.LoginContext.invoke(LoginContext.java:921)
+	at javax.security.auth.login.LoginContext.access$000(LoginContext.java:186)
+	at javax.security.auth.login.LoginContext$4.run(LoginContext.java:683)
+	at java.security.AccessController.doPrivileged(Native Method)
+	at javax.security.auth.login.LoginContext.invokePriv(LoginContext.java:680)
+	at javax.security.auth.login.LoginContext.login(LoginContext.java:579)
+	at org.apache.catalina.realm.JAASRealm.authenticate(JAASRealm.java:362)
+	at org.josso.tc60.agent.CatalinaSSOAgent.authenticate(CatalinaSSOAgent.java:95)
+	at org.josso.agent.AbstractSSOAgent.execute(AbstractSSOAgent.java:373)
+	at org.josso.agent.AbstractSSOAgent.processRequest(AbstractSSOAgent.java:286)
+	at org.josso.tc60.agent.SSOAgentValve.invoke(SSOAgentValve.java:625)
+	at org.apache.catalina.core.StandardEngineValve.invoke(StandardEngineValve.java:109)
+	at org.apache.catalina.connector.CoyoteAdapter.service(CoyoteAdapter.java:263)
+	at org.apache.coyote.http11.Http11Processor.process(Http11Processor.java:844)
+	at org.apache.coyote.http11.Http11Protocol$Http11ConnectionHandler.process(Http11Protocol.java:584)
+	at org.apache.tomcat.util.net.JIoEndpoint$Worker.run(JIoEndpoint.java:447)
+	at java.lang.Thread.run(Thread.java:619)
+
+
+
+=========== TOMCAT
+
+java.lang.RuntimeException: Outbound relaying failed. No Principal found. Verify your SSO Agent Configuration!
+	org.josso.tc60.agent.SSOAgentValve.invoke(SSOAgentValve.java:551)
+	org.apache.catalina.connector.CoyoteAdapter.service(CoyoteAdapter.java:291)
+	org.apache.coyote.http11.Http11Processor.process(Http11Processor.java:859)
+	org.apache.coyote.http11.Http11Protocol$Http11ConnectionHandler.process(Http11Protocol.java:602)
+	org.apache.tomcat.util.net.JIoEndpoint$Worker.run(JIoEndpoint.java:489)
+	java.lang.Thread.run(Thread.java:662)
+
+--------
+Known issues:
+java.lang.RuntimeException: Outbound relaying failed. No Principal found. Verify your SSO Agent Configuration!
+This is caused due to the jaas.conf not being referenced, due to tomcat starting as a service, and the josso install not updating the correct file.
+- Edit /etc/tomcat6/tomcat6.conf to include the following
+JAVA_OPTS="$JAVA_OPTS -Djava.security.auth.login.config=$CATALINA_HOME/conf/jaas.conf"
+
+
+---- http://www.atricore.org/jira/browse/JOSSO-180?page=com.atlassian.jira.plugin.system.issuetabpanels%3Aall-tabpanel
+
+
+
+
+
+- No security token recieved, using default SSO Context
+- Thu Aug 16 10:07:43 BRT 2012 - sso-user - info -  - authenticationFailed=failure - remoteHost=10.37.201.120,authScheme=basic-authentication - ERROR:null:org.josso.auth.exceptions.AuthenticationFailureException
+- Thu Aug 16 10:07:43 BRT 2012 - sso-user - info -  - authenticationFailed=failure - remoteHost=10.37.201.120,authScheme=basic-authentication - ERROR:null:org.josso.auth.exceptions.AuthenticationFailureException
+- Thu Aug 16 10:07:44 BRT 2012 - sso-user - info -  - authenticationFailed=failure - remoteHost=10.37.201.120,authScheme=basic-authentication - ERROR:null:org.josso.auth.exceptions.AuthenticationFailureException
+- Thu Aug 16 10:07:44 BRT 2012 - sso-user - info -  - authenticationFailed=failure - remoteHost=10.37.201.120,authScheme=basic-authentication - ERROR:null:org.josso.auth.exceptions.AuthenticationFailureException
+- Invalid JOSSO Authentication Assertion : 60449B0F524826A0
+org.josso.gateway.assertion.exceptions.AssertionNotValidException: Invalid JOSSO Authentication Assertion : 60449B0F524826A0
+	at org.josso.gateway.identity.service.SSOIdentityProviderImpl.resolveAuthenticationAssertion(SSOIdentityProviderImpl.java:122)
+	at org.josso.gateway.ws._1_2.wsdl.SSOIdentityProviderSOAPBindingImpl.resolveAuthenticationAssertion(SSOIdentityProviderSOAPBindingImpl.java:68)
+	at org.josso.gateway.ws._1_2.wsdl.SSOIdentityProviderSOAPBindingSkeleton.resolveAuthenticationAssertion(SSOIdentityProviderSOAPBindingSkeleton.java:123)
+	at sun.reflect.GeneratedMethodAccessor1433.invoke(Unknown Source)
+	at sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:25)
+	at java.lang.reflect.Method.invoke(Method.java:597)
+	at org.apache.axis.providers.java.RPCProvider.invokeMethod(RPCProvider.java:397)
+	at org.apache.axis.providers.java.RPCProvider.processMessage(RPCProvider.java:186)
+	at org.apache.axis.providers.java.JavaProvider.invoke(JavaProvider.java:323)
+	at org.apache.axis.strategies.InvocationStrategy.visit(InvocationStrategy.java:32)
+	at org.apache.axis.SimpleChain.doVisiting(SimpleChain.java:118)
+	at org.apache.axis.SimpleChain.invoke(SimpleChain.java:83)
+	at org.apache.axis.handlers.soap.SOAPService.invoke(SOAPService.java:454)
+	at org.apache.axis.server.AxisServer.invoke(AxisServer.java:281)
+	at org.apache.axis.transport.http.AxisServlet.doPost(AxisServlet.java:699)
+	at javax.servlet.http.HttpServlet.service(HttpServlet.java:637)
+	at org.apache.axis.transport.http.AxisServletBase.service(AxisServletBase.java:327)
+	at javax.servlet.http.HttpServlet.service(HttpServlet.java:717)
+	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:290)
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:206)
+	at org.apache.catalina.core.StandardWrapperValve.invoke(StandardWrapperValve.java:233)
+	at org.apache.catalina.core.StandardContextValve.invoke(StandardContextValve.java:191)
+	at org.apache.catalina.core.StandardHostValve.invoke(StandardHostValve.java:128)
+	at org.apache.catalina.valves.ErrorReportValve.invoke(ErrorReportValve.java:102)
+	at org.josso.tc60.agent.SSOAgentValve.invoke(SSOAgentValve.java:294)
+	at org.apache.catalina.core.StandardEngineValve.invoke(StandardEngineValve.java:109)
+	at org.apache.catalina.connector.CoyoteAdapter.service(CoyoteAdapter.java:286)
+	at org.apache.coyote.http11.Http11Processor.process(Http11Processor.java:845)
+	at org.apache.coyote.http11.Http11Protocol$Http11ConnectionHandler.process(Http11Protocol.java:583)
+	at org.apache.tomcat.util.net.JIoEndpoint$Worker.run(JIoEndpoint.java:447)
+	at java.lang.Thread.run(Thread.java:619)
+- Error dereferencing authentication assertion : 60449B0F524826A0
+org.josso.gateway.identity.exceptions.IdentityProvisioningException: Error dereferencing authentication assertion : 60449B0F524826A0
+	at org.josso.gateway.identity.service.SSOIdentityProviderImpl.resolveAuthenticationAssertion(SSOIdentityProviderImpl.java:129)
+	at org.josso.gateway.ws._1_2.wsdl.SSOIdentityProviderSOAPBindingImpl.resolveAuthenticationAssertion(SSOIdentityProviderSOAPBindingImpl.java:68)
+	at org.josso.gateway.ws._1_2.wsdl.SSOIdentityProviderSOAPBindingSkeleton.resolveAuthenticationAssertion(SSOIdentityProviderSOAPBindingSkeleton.java:123)
+	at sun.reflect.GeneratedMethodAccessor1433.invoke(Unknown Source)
+	at sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:25)
+	at java.lang.reflect.Method.invoke(Method.java:597)
+	at org.apache.axis.providers.java.RPCProvider.invokeMethod(RPCProvider.java:397)
+	at org.apache.axis.providers.java.RPCProvider.processMessage(RPCProvider.java:186)
+	at org.apache.axis.providers.java.JavaProvider.invoke(JavaProvider.java:323)
+	at org.apache.axis.strategies.InvocationStrategy.visit(InvocationStrategy.java:32)
+	at org.apache.axis.SimpleChain.doVisiting(SimpleChain.java:118)
+	at org.apache.axis.SimpleChain.invoke(SimpleChain.java:83)
+	at org.apache.axis.handlers.soap.SOAPService.invoke(SOAPService.java:454)
+	at org.apache.axis.server.AxisServer.invoke(AxisServer.java:281)
+	at org.apache.axis.transport.http.AxisServlet.doPost(AxisServlet.java:699)
+	at javax.servlet.http.HttpServlet.service(HttpServlet.java:637)
+	at org.apache.axis.transport.http.AxisServletBase.service(AxisServletBase.java:327)
+	at javax.servlet.http.HttpServlet.service(HttpServlet.java:717)
+	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:290)
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:206)
+	at org.apache.catalina.core.StandardWrapperValve.invoke(StandardWrapperValve.java:233)
+	at org.apache.catalina.core.StandardContextValve.invoke(StandardContextValve.java:191)
+	at org.apache.catalina.core.StandardHostValve.invoke(StandardHostValve.java:128)
+	at org.apache.catalina.valves.ErrorReportValve.invoke(ErrorReportValve.java:102)
+	at org.josso.tc60.agent.SSOAgentValve.invoke(SSOAgentValve.java:294)
+	at org.apache.catalina.core.StandardEngineValve.invoke(StandardEngineValve.java:109)
+	at org.apache.catalina.connector.CoyoteAdapter.service(CoyoteAdapter.java:286)
+	at org.apache.coyote.http11.Http11Processor.process(Http11Processor.java:845)
+	at org.apache.coyote.http11.Http11Protocol$Http11ConnectionHandler.process(Http11Protocol.java:583)
+	at org.apache.tomcat.util.net.JIoEndpoint$Worker.run(JIoEndpoint.java:447)
+	at java.lang.Thread.run(Thread.java:619)
+Caused by: org.josso.gateway.assertion.exceptions.AssertionNotValidException: Invalid JOSSO Authentication Assertion : 60449B0F524826A0
+	at org.josso.gateway.identity.service.SSOIdentityProviderImpl.resolveAuthenticationAssertion(SSOIdentityProviderImpl.java:122)
+	... 30 more
+- No security token recieved, using default SSO Context
+- Invalid JOSSO Authentication Assertion : 60449B0F524826A1
+org.josso.gateway.assertion.exceptions.AssertionNotValidException: Invalid JOSSO Authentication Assertion : 60449B0F524826A1
+	at org.josso.gateway.identity.service.SSOIdentityProviderImpl.resolveAuthenticationAssertion(SSOIdentityProviderImpl.java:122)
+	at org.josso.gateway.ws._1_2.wsdl.SSOIdentityProviderSOAPBindingImpl.resolveAuthenticationAssertion(SSOIdentityProviderSOAPBindingImpl.java:68)
+	at org.josso.gateway.ws._1_2.wsdl.SSOIdentityProviderSOAPBindingSkeleton.resolveAuthenticationAssertion(SSOIdentityProviderSOAPBindingSkeleton.java:123)
+	at sun.reflect.GeneratedMethodAccessor1433.invoke(Unknown Source)
+	at sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:25)
+	at java.lang.reflect.Method.invoke(Method.java:597)
+	at org.apache.axis.providers.java.RPCProvider.invokeMethod(RPCProvider.java:397)
+	at org.apache.axis.providers.java.RPCProvider.processMessage(RPCProvider.java:186)
+	at org.apache.axis.providers.java.JavaProvider.invoke(JavaProvider.java:323)
+	at org.apache.axis.strategies.InvocationStrategy.visit(InvocationStrategy.java:32)
+	at org.apache.axis.SimpleChain.doVisiting(SimpleChain.java:118)
+	at org.apache.axis.SimpleChain.invoke(SimpleChain.java:83)
+	at org.apache.axis.handlers.soap.SOAPService.invoke(SOAPService.java:454)
+	at org.apache.axis.server.AxisServer.invoke(AxisServer.java:281)
+	at org.apache.axis.transport.http.AxisServlet.doPost(AxisServlet.java:699)
+	at javax.servlet.http.HttpServlet.service(HttpServlet.java:637)
+	at org.apache.axis.transport.http.AxisServletBase.service(AxisServletBase.java:327)
+	at javax.servlet.http.HttpServlet.service(HttpServlet.java:717)
+	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:290)
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:206)
+	at org.apache.catalina.core.StandardWrapperValve.invoke(StandardWrapperValve.java:233)
+	at org.apache.catalina.core.StandardContextValve.invoke(StandardContextValve.java:191)
+	at org.apache.catalina.core.StandardHostValve.invoke(StandardHostValve.java:128)
+	at org.apache.catalina.valves.ErrorReportValve.invoke(ErrorReportValve.java:102)
+	at org.josso.tc60.agent.SSOAgentValve.invoke(SSOAgentValve.java:294)
+	at org.apache.catalina.core.StandardEngineValve.invoke(StandardEngineValve.java:109)
+	at org.apache.catalina.connector.CoyoteAdapter.service(CoyoteAdapter.java:286)
+	at org.apache.coyote.http11.Http11Processor.process(Http11Processor.java:845)
+	at org.apache.coyote.http11.Http11Protocol$Http11ConnectionHandler.process(Http11Protocol.java:583)
+	at org.apache.tomcat.util.net.JIoEndpoint$Worker.run(JIoEndpoint.java:447)
+	at java.lang.Thread.run(Thread.java:619)
+- Error dereferencing authentication assertion : 60449B0F524826A1
+org.josso.gateway.identity.exceptions.IdentityProvisioningException: Error dereferencing authentication assertion : 60449B0F524826A1
+	at org.josso.gateway.identity.service.SSOIdentityProviderImpl.resolveAuthenticationAssertion(SSOIdentityProviderImpl.java:129)
+	at org.josso.gateway.ws._1_2.wsdl.SSOIdentityProviderSOAPBindingImpl.resolveAuthenticationAssertion(SSOIdentityProviderSOAPBindingImpl.java:68)
+	at org.josso.gateway.ws._1_2.wsdl.SSOIdentityProviderSOAPBindingSkeleton.resolveAuthenticationAssertion(SSOIdentityProviderSOAPBindingSkeleton.java:123)
+	at sun.reflect.GeneratedMethodAccessor1433.invoke(Unknown Source)
+	at sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:25)
+	at java.lang.reflect.Method.invoke(Method.java:597)
+	at org.apache.axis.providers.java.RPCProvider.invokeMethod(RPCProvider.java:397)
+	at org.apache.axis.providers.java.RPCProvider.processMessage(RPCProvider.java:186)
+	at org.apache.axis.providers.java.JavaProvider.invoke(JavaProvider.java:323)
+	at org.apache.axis.strategies.InvocationStrategy.visit(InvocationStrategy.java:32)
+	at org.apache.axis.SimpleChain.doVisiting(SimpleChain.java:118)
+	at org.apache.axis.SimpleChain.invoke(SimpleChain.java:83)
+	at org.apache.axis.handlers.soap.SOAPService.invoke(SOAPService.java:454)
+	at org.apache.axis.server.AxisServer.invoke(AxisServer.java:281)
+	at org.apache.axis.transport.http.AxisServlet.doPost(AxisServlet.java:699)
+	at javax.servlet.http.HttpServlet.service(HttpServlet.java:637)
+	at org.apache.axis.transport.http.AxisServletBase.service(AxisServletBase.java:327)
+	at javax.servlet.http.HttpServlet.service(HttpServlet.java:717)
+	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:290)
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:206)
+	at org.apache.catalina.core.StandardWrapperValve.invoke(StandardWrapperValve.java:233)
+	at org.apache.catalina.core.StandardContextValve.invoke(StandardContextValve.java:191)
+	at org.apache.catalina.core.StandardHostValve.invoke(StandardHostValve.java:128)
+	at org.apache.catalina.valves.ErrorReportValve.invoke(ErrorReportValve.java:102)
+	at org.josso.tc60.agent.SSOAgentValve.invoke(SSOAgentValve.java:294)
+	at org.apache.catalina.core.StandardEngineValve.invoke(StandardEngineValve.java:109)
+	at org.apache.catalina.connector.CoyoteAdapter.service(CoyoteAdapter.java:286)
+	at org.apache.coyote.http11.Http11Processor.process(Http11Processor.java:845)
+	at org.apache.coyote.http11.Http11Protocol$Http11ConnectionHandler.process(Http11Protocol.java:583)
+	at org.apache.tomcat.util.net.JIoEndpoint$Worker.run(JIoEndpoint.java:447)
+	at java.lang.Thread.run(Thread.java:619)
+Caused by: org.josso.gateway.assertion.exceptions.AssertionNotValidException: Invalid JOSSO Authentication Assertion : 60449B0F524826A1
+	at org.josso.gateway.identity.service.SSOIdentityProviderImpl.resolveAuthenticationAssertion(SSOIdentityProviderImpl.java:122)
+	... 30 more
